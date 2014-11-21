@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use Email::Simple;
+use IO::File;
+
+use strict;
+use warnings;
+
+die usage() unless $#ARGV == 0;
+my $path = shift;
+
+local $/;
+my $email = Email::Simple->new(<>);
+
+my $msgid = $email->header('Message-ID');
+$msgid =~ s/<(.*)@.*>/$1/;
+
+my $fh = IO::File->new(">$path/$msgid") ||
+  die "Couldn't write to $path/$msgid: $!\n";
+print $fh $email->as_string;
+$fh->close;
+
+sub usage {
+  "Usage: $0 path\n";
+}

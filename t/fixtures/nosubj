@@ -1,0 +1,13 @@
+Return-Path: <test@mta.example.com>
+Delivered-To: spamcat@example.com
+Received: from mta.example.com
+	by mta.example.com (Dovecot) with LMTP id 9DDcI25oblTvgAEAQc1eRg
+	for <spamcat@example.com>; Thu, 20 Nov 2014 17:17:18 -0500
+Received: by mta.example.com (Postfix, from userid 1001)
+	id 844956F1EE; Thu, 20 Nov 2014 17:17:18 -0500 (EST)
+To: nosubj@spamcat.example.com
+Message-Id: <nosubj@mta.example.com>
+Date: Thu, 20 Nov 2014 17:17:18 -0500 (EST)
+From: sender@example.com (Spamcat Sender)
+
+Sample email.

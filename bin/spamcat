@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+spamcat - Filter spam by number of messages sent.
+
+=head1 SYNOPSIS
+
+spamcat [options]
+
+=over 8
+
+=item B<--help>
+
+Print a brief help message and exit.
+
+=item B<-c> C<file>
+
+Load configuration from C<file>
+
+=item B<--dumpconfig>
+
+Dump the current configuration.
+
+=back
+
+=head1 DESCRIPTION
+
+B<spamcat> allows you to have disposable email addresses.
+
+=head1 AUTHOR
+
+Brian Cully <bjc@kublai.com>
+
+=cut
+
+use SpamCat;
+use SpamCat::Conf;
+
+use Getopt::Long;
+use Pod::Usage;
+
+use Data::Dumper;
+
+use strict;
+use warnings;
+
+my $DEFAULT_CONFIGFILE = '/usr/local/etc/spamcat.conf';
+
+my ($help, $configfile, $dumpconfig);
+GetOptions('help|h'     => \$help,
+	   'c=s'        => \$configfile,
+	   'dumpconfig' => \$dumpconfig) || pod2usage(2);
+pod2usage(1) if $help;
+
+$configfile = $configfile || $DEFAULT_CONFIGFILE;
+my %conf = SpamCat::Conf::read($configfile);
+
+if ($dumpconfig) {
+  foreach my $k (keys %conf) {
+    my $v = $conf{$k};
+    if ($k eq 'domains') {
+      $v = join ', ', @{$v};
+    }
+    print uc($k) . " = " . $v . "\n";
+  }
+  exit;
+}
+
+my $sch = SpamCat->new(%conf) ||
+  die "Couldn't start spamcat: $!\n";
+$sch->deliver;

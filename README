@@ -1,1 +1,123 @@
+# -*- mode: org -*-
+
 Something like spamgourmet.
+
+* WHY THIS EXISTS
+Having a public email address is an invitation to spam. Private email
+addresses allow you to filter your spam based on how much you receive
+and from whom it came. Instead of giving your main email address to
+every web site you run across, you can give a private email address to
+each web site (e.g., "facebook@myspam.example.com" for Facebook). That
+way if you no longer want to receive email from a given sender, you
+can easily filter it out.
+
+Additionally, by having site-specific email addresses you can also
+tell when a breach of security happened. If I tell Home Depot my email
+address is home-depot@myspam.example.com and I start receiving spam
+from Nigeria on that address I know that Home Depot has had a security
+breach. I can use that to inform Home Depot, Twitter, my friends that
+there's been a breach, in addition to checking credit cards for
+possible fraudulent charges.
+
+In short, having private email addresses per organization allows you
+to keep tabs on your private life and help keep you more secure.
+
+It would be remiss to not mention spamgourmet.com, a wonderful service
+that was the inspiration for this code. I've been a happy spamgourmet
+user for many years, but unfortunately it has some problems this
+software attempts to address:
+
+1) spamgourmet.com and its various addresses are too well known. By
+   hosting this on your own domain you can prevent, for instance,
+   Facebook from filtering your email address.
+2) spamgourmet addresses are very long and hard to communicate over
+   the phone or when filling out forms at, say, the doctor's
+   office. This is attempting to provide much shorter addresses that
+   will raise fewer eyebrows and communicate more easily.
+
+* HOW IT WORKS
+Once the software is installed (see INSTALLATION, below), it will
+start receiving all email directed at it (such as by procmail or
+sieve), and it will examine the destination address (i.e., "To"
+header) to determine whether it should deliver the email to the final
+recipient or not.
+
+SpamCat relies on your MTA delivering mail from your spam domain to a
+real email address that can be used for IMAP/POP/etc. This can be
+accomplished in any number of ways based on your MTA/LMTP/LDA setup;
+an example for Postfix/Dovecot is below.
+
+When SpamCat receives a message it looks at the username (the
+left-hand of the "@" in an email address) to determine the
+sender. Thus, "foo@bar.com"'s sender is "foo".
+
+Once the sender is determined SpamCat will see how many messages are
+remaining for that sender, and if the sender has no remaining messages
+then the message is thrown away.
+
+If the sender has messages remaining then the message is delivered
+as-is with the exception that the Subject header shows how many
+messages are remaining and the total number of messages available
+(e.g., "Subject: XANAX FOR NIGERIA - [19/20]" shows that there are 20
+total messages from this sender, and there are 19 remaining).
+
+* RECOMMENDED USAGE
+1) Create your own spam-handling domain (e.g., "spam.example.com")
+2) Use private email addresses in that domain anywhere you're asked
+   for an email address (e.g., giving ShopRite an address of
+   "shoprite@spam.example.com")
+
+* PREREQUISITES
+1) Perl 5
+2) Email::Simple
+3) SQLite 3
+4) DBD::SQLite
+
+* INSTALLATION
+1) See INSTALL to install the library and spamcat executable.
+2) Once the spamcat executable is installed you'll need to add it to
+   your procmail, sieve, or some other similar device that takes an
+   email on standard input and expects local delivery.
+3) You will also need to create a config file for spamcat (see
+   config/spamcat.conf for an example) somewhere that can be read by
+   spamcat.
+4) Make sure you pass in the spamcat.conf file to spamcat via the "-c"
+   argument (e.g., "spamcat -c /home/me/etc/spamcat.conf").
+
+* EXAMPLES
+** Postfix
+*** main.cf
+Postfix needs to know that the spam domain should be handled locally.
+
+#+BEGIN_COMMENT
+virtual_mailbox_domains = spamcat.domain somewhere.else
+#+END_COMMENT
+
+*** virtual aliases table
+Make sure postfix can route the spam domain to the user who should
+receive it.
+
+#+BEGIN_COMMENT
+@spamcat.domain  hidden-address@somewhere.else
+#+END_COMMENT
+
+** Dovecot/Sieve
+The sieve file for the user which recieves mail for the spam domain
+should pipe the email into spamcat, which will handle final delivery
+for the spam domain.
+
+#+BEGIN_COMMENT
+require ["fileinto", "envelope", "vnd.dovecot.pipe"];
+
+if address :contains "to" "@spamcat.domain" {
+  pipe :try "spamcat" ["-c", "/path/to/spamcat.conf"];
+  fileinto "Junk";
+}
+#+END_COMMENT
+** DNS
+The MX record for your spam domain should point to the MTA that hosts
+spamcat.
+
+#+BEGIN_COMMENT
+spamcat.domain MX 10 yourmta.domain.
+#+END_COMMENT

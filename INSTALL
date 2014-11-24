@@ -1,3 +1,5 @@
+% sqlite somedbfile.sqlite3 < config/create-tables.sql
+
 % perl Makefile.PL
 % make
 % make test

@@ -102,7 +102,7 @@ receive it.
 #+END_COMMENT
 
 ** Dovecot/Sieve
-The sieve file for the user which recieves mail for the spam domain
+The sieve file for the user which receives mail for the spam domain
 should pipe the email into spamcat, which will handle final delivery
 for the spam domain.
 

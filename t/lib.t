@@ -1,6 +1,6 @@
 # -*- Mode: cperl -*-
 
-use Test::More tests => 31;
+use Test::More tests => 41;
 
 use strict;
 use warnings;
@@ -62,6 +62,19 @@ test_file('multiple', 1);
 test_file('wrongdomain', 1);
 test_file('nosubj', 1);
 test_file('bar', 0);
+
+ok(SpamCat->can('get_table'));
+my @rows = @{$sch->get_table()};
+is($#rows, 3);
+@rows = sort { $a->{sender} cmp $b->{sender} } @rows;
+is($rows[0]->{sender}, 'bar');
+is($rows[0]->{count}, 0);
+is($rows[1]->{sender}, 'foo');
+is($rows[1]->{count}, 16);
+is($rows[2]->{sender}, 'name1');
+is($rows[2]->{count}, 20);
+is($rows[3]->{sender}, 'nosubj');
+is($rows[3]->{count}, 20);
 
 sub test_file {
   my ($filen, $should_exist) = @_;

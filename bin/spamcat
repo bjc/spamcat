@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 =head1 NAME
 
@@ -6,27 +6,33 @@ spamcat - Filter spam by number of messages sent.
 
 =head1 SYNOPSIS
 
-spamcat [options]
-
-=over 8
-
-=item B<--help>
-
-Print a brief help message and exit.
-
-=item B<-c> C<file>
-
-Load configuration from C<file>
-
-=item B<--dumpconfig>
-
-Dump the current configuration.
-
-=back
+spamcat [--help] [-c config-file] [dumpconfig|dump]
 
 =head1 DESCRIPTION
 
 B<spamcat> allows you to have disposable email addresses.
+
+=head1 OPTIONS
+
+=over 8
+
+=item --help
+
+Print a brief help message and exit.
+
+=item -c C<file>
+
+Load configuration from C<file>
+
+=item dumpconfig
+
+Dump the current configuration.
+
+=item dump
+
+Dumps the spamcat database in tab-delimited format.
+
+=back
 
 =head1 AUTHOR
 
@@ -47,26 +53,39 @@ use warnings;
 
 my $DEFAULT_CONFIGFILE = '/usr/local/etc/spamcat.conf';
 
-my ($help, $configfile, $dumpconfig);
+my ($help, $configfile);
 GetOptions('help|h'     => \$help,
-	   'c=s'        => \$configfile,
-	   'dumpconfig' => \$dumpconfig) || pod2usage(2);
+	   'c=s'        => \$configfile) || pod2usage(2);
 pod2usage(1) if $help;
 
 $configfile = $configfile || $DEFAULT_CONFIGFILE;
 my %conf = SpamCat::Conf::read($configfile);
 
-if ($dumpconfig) {
-  foreach my $k (keys %conf) {
-    my $v = $conf{$k};
-    if ($k eq 'domains') {
-      $v = join ', ', @{$v};
-    }
-    print uc($k) . " = " . $v . "\n";
-  }
-  exit;
-}
-
 my $sch = SpamCat->new(%conf) ||
-  die "Couldn't start spamcat: $!\n";
-$sch->deliver;
+    die "Couldn't start spamcat: $!\n";
+if ($#ARGV >= 0) {
+    my $cmd = shift @ARGV;
+    if ($cmd eq 'dump') {
+	my @keys = qw(sender count created modified);
+	print join("\t", @keys) . "\n";
+	foreach my $row (@{$sch->get_table}) {
+	    my @vals;
+	    foreach my $k (@keys) {
+		push @vals, $row->{$k};
+	    }
+	    print join("\t", @vals) . "\n";
+	}
+    } elsif ($cmd eq 'dumpconfig') {
+	foreach my $k (keys %conf) {
+	    my $v = $conf{$k};
+	    if ($k eq 'domains') {
+		$v = join ', ', @{$v};
+	    }
+	    print uc($k) . " = " . $v . "\n";
+	}
+    } else {
+	pod2usage(1);
+    }
+} else {
+    $sch->deliver;
+}

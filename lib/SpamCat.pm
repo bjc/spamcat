@@ -75,6 +75,12 @@ sub parse_to {
   } @tovals;
 }
 
+sub get_table {
+    my ($self) = @_;
+
+    $self->in_transaction(sub { $self->get_table_t() });
+}
+
 sub get_count {
   my ($self, $sender) = @_;
 
@@ -96,6 +102,26 @@ sub decrement_count {
 #
 # The _t functions are meant to be run inside transacitons.
 #
+
+sub get_table_t {
+    my ($self) = @_;
+
+    my @rows;
+    my $q = 'SELECT * FROM emails';
+    my $sth = $self->{dbh}->prepare($q);
+    $sth->execute();
+    while (my $row = $sth->fetchrow_hashref) {
+	push @rows, $row
+    }
+    if ($sth->err) {
+	$sth->finish;
+	carp $sth->errstr;
+	return;
+    }
+    $sth->finish;
+
+    \@rows;
+}
 
 sub get_count_t {
   my ($self, $sender) = @_;
@@ -154,8 +180,7 @@ sub in_transaction {
   my $rc = eval { &$sub($self); };
   if ($@) {
     $self->{dbh}->rollback;
-    warn "ERROR: Transaction failed: $@\n";
-    exit 1;
+    carp "Transaction failed: $@\n";
   } else {
     $self->{dbh}->commit;
   }

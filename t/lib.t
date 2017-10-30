@@ -1,6 +1,6 @@
 # -*- Mode: cperl -*-
 
-use Test::More tests => 41;
+use Test::More tests => 42;
 
 use strict;
 use warnings;
@@ -39,7 +39,8 @@ ok(!defined $sch->get_count('doesntexist'),
    'Non-existant sender has undefined count');
 
 ok(SpamCat->can('set_count'), 'Has count setter');
-is($sch->set_count('bar', 1), 1, 'Setting count returns existing count');
+is($sch->set_count('bar', 10), 10, 'Setting count returns existing count');
+is($sch->set_count('bar', 1), 1, 'Updating existing count to 1 returns 1');
 is($sch->decrement_count('bar'), 0, 'Decrementing count from 1 returns 0');
 is($sch->decrement_count('bar'), 0, 'Decrementing count from 0 returns 0');
 

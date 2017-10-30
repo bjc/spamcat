@@ -144,7 +144,7 @@ sub set_count_t {
     $q = 'INSERT INTO emails (count, sender) VALUES (?, ?)';
   } else {
     # Otherwise update the record with the new count.
-    $q = 'UPDATE emails SET count = ? modified = CURRENT_TIMESTAMP WHERE sender = ?'
+    $q = 'UPDATE emails SET count = ?, modified = CURRENT_TIMESTAMP WHERE sender = ?'
   }
   my $sth = $self->{dbh}->prepare($q);
   $sth->execute($count, $sender);

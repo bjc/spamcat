@@ -24,6 +24,14 @@ Print a brief help message and exit.
 
 Load configuration from C<file>
 
+=item get C<sender>
+
+Show database row for C<sender>.
+
+=item set C<sender> C<count>
+
+Set C<sender>'s remaining message count to C<count>.
+
 =item dumpconfig
 
 Dump the current configuration.
@@ -83,6 +91,16 @@ if ($#ARGV >= 0) {
 	    }
 	    print uc($k) . " = " . $v . "\n";
 	}
+    } elsif ($cmd eq 'get') {
+	my $sender = shift @ARGV;
+	pod2usage(1) unless $sender;
+	my $count = $sch->get_count($sender);
+	print "$sender has $count messages remaining.\n";
+    } elsif ($cmd eq 'set') {
+	my ($sender, $count) = @ARGV;
+	pod2usage(1) unless $count && $count =~ /\d+/;
+	$sch->set_count($sender, $count);
+	print "$sender has $count messages remaining.\n";
     } else {
 	pod2usage(1);
     }

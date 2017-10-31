@@ -55,6 +55,7 @@ sub deliver {
       $new_subject = $count_str;
     }
     $email->header_set('Subject' => $new_subject);
+    $email->header_set('X-SpamCat-Remaining' => $count);
   }
 
   my $deliverfh = IO::File->new("| " . $self->{deliver}) ||

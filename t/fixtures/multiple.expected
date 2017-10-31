@@ -11,5 +11,6 @@ Subject: test - [20/20]
 Message-Id: <multiple@mta.example.com>
 Date: Thu, 20 Nov 2014 17:17:18 -0500 (EST)
 From: sender@example.com (Spamcat Sender)
+X-SpamCat-Remaining: 20
 
 Sample email.
